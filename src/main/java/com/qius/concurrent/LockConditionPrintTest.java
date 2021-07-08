@@ -45,7 +45,7 @@ public class LockConditionPrintTest {
 
                     if (num >= 100) break;
                     try {
-                        // 阻塞当前线程
+                        // 阻塞当前线程 释放当前锁 并处于等待状态
                         cur.await();
                     } catch (InterruptedException e) {
                         e.printStackTrace();
