@@ -1,5 +1,6 @@
 package com.qius.concurrent;
 
+import javax.sound.midi.Soundbank;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -12,14 +13,24 @@ public class LockConditionPrintTest {
 
     public static void main(String[] args) {
         LockConditionPrintTest test = new LockConditionPrintTest();
+//        new Thread(() ->{
+//            test.printABCWithCondition(0, c1, c2);
+//        }).start();
+//        new Thread(() ->{
+//            test.printABCWithCondition(1, c2, c3);
+//        }).start();
+//        new Thread(() ->{
+//            test.printABCWithCondition(2, c3, c1);
+//        }).start();
+
         new Thread(() ->{
-            test.printABCWithCondition(0, c1, c2);
+            test.printABCRecur(0, c1, c2, "A");
         }).start();
         new Thread(() ->{
-            test.printABCWithCondition(1, c2, c3);
+            test.printABCRecur(1, c2, c3, "B");
         }).start();
         new Thread(() ->{
-            test.printABCWithCondition(2, c3, c1);
+            test.printABCRecur(2, c3, c1, "C");
         }).start();
     }
 
@@ -45,7 +56,7 @@ public class LockConditionPrintTest {
 
                     if (num >= 100) break;
                     try {
-                        // 阻塞当前线程 释放当前锁 并处于等待状态
+                        //  释放当前锁 从锁的入口等待队列中唤醒一个线程 然后阻塞自己
                         cur.await();
                     } catch (InterruptedException e) {
                         e.printStackTrace();
@@ -54,7 +65,7 @@ public class LockConditionPrintTest {
 
                 if (num >= 100) break;
                 System.out.println(Thread.currentThread().getName() + " print " + ++num);
-                // 唤醒下一个线程 而不是唤醒所有线程
+                // 唤醒阻塞在next的条件等待队列中的一个线程 重新竞争锁 如果拿不到 去入口等待队列
                 next.signal();
             }catch (Exception e){
                 e.printStackTrace();
@@ -65,12 +76,30 @@ public class LockConditionPrintTest {
         }
     }
 
-
     /**
-     * 使用信号量
-     * {@link SemaphorePrintTest}
-     * 见##
+     * 使用condition循环打印ABC 10次
+     * @param targetNum
+     * @param cur
+     * @param next
+     * @param str
      */
+    private void printABCRecur(int targetNum, Condition cur, Condition next, String str){
+        for(int i = 0; i < 10; i++){
+            lock.lock();
+            while (num%3 != targetNum){
+                try {
+                    cur.await();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            System.out.println("thread " + targetNum + "print " + str);
+            num++;
+            next.signal();
+        }
+    }
+
+
 
 
 }
