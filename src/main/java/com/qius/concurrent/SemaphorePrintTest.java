@@ -18,14 +18,26 @@ public class SemaphorePrintTest {
 
     public static void main(String[] args) {
         SemaphorePrintTest test = new SemaphorePrintTest();
+        // test 使用信号量 循环打印ABC 10次
+//        new Thread(() -> {
+//            test.printABCWithSemaphore(s1, s2);
+//        }, "A").start();
+//        new Thread(() -> {
+//            test.printABCWithSemaphore(s2, s3);
+//        }, "B").start();
+//        new Thread(() -> {
+//            test.printABCWithSemaphore(s3, s1);
+//        }, "C").start();
+
+        // test 使用信号量 3个线程循环打印1-100
         new Thread(() -> {
-            test.printABCWithSemaphore(s1, s2);
+            test.print(s1, s2);
         }, "A").start();
         new Thread(() -> {
-            test.printABCWithSemaphore(s2, s3);
+            test.print(s2, s3);
         }, "B").start();
         new Thread(() -> {
-            test.printABCWithSemaphore(s3, s1);
+            test.print(s3, s1);
         }, "C").start();
     }
 
@@ -34,7 +46,7 @@ public class SemaphorePrintTest {
     private static Semaphore s2 = new Semaphore(0);
     private static Semaphore s3 = new Semaphore(0);
 
-    private int num;
+    private static int num;
 
     /**
      * 循环10次 依次打印ABC
@@ -56,6 +68,30 @@ public class SemaphorePrintTest {
             }
         }
 
+    }
+
+    /**
+     * 循环打印1-100
+     * @param cur
+     * @param next
+     */
+    private void print(Semaphore cur, Semaphore next){
+        while (true){
+            try {
+                // 获取当前信号量
+                cur.acquire();
+                // 当到达100释放下一个信号量
+                if (num == 100)  {
+                    next.release();
+                    break;
+                }
+                System.out.println(Thread.currentThread().getName() + " print " + ++num);
+
+                next.release();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
 }
