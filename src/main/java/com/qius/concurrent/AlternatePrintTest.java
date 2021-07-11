@@ -14,6 +14,9 @@ public class AlternatePrintTest {
     private static ReentrantLock lock = new ReentrantLock();
     static Condition condition = lock.newCondition();
 
+    /**
+     * 线程T3 负责打印数字 1-26
+     */
     static class T3 implements Runnable {
         @Override
         public void run() {
@@ -34,6 +37,9 @@ public class AlternatePrintTest {
 
     }
 
+    /**
+     * 线程T4 负责打印小写字符 a-z
+     */
     static class T4 implements Runnable {
         @Override
         public void run() {
