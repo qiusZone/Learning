@@ -23,36 +23,38 @@ public class BlockingQueue {
     // lock
     private Lock lock = new ReentrantLock();
     // condition
-    private Condition isEmpty =lock.newCondition();
-    private Condition isFull = lock.newCondition();
+    private Condition notEmpty = lock.newCondition();
+    private Condition notFull = lock.newCondition();
 
     // 队列元素统计
     private volatile int size;
     private volatile int capacity;
 
-    public BlockingQueue(int capacity){
+    public BlockingQueue(int capacity) {
         this.capacity = capacity;
     }
 
     // 添加元素
-    public void add(int data){
-        try{
-            // 获取锁
-            lock.lock();
+    public void add(int data) {
+
+        // 获取锁
+        lock.lock();
+
+        try {
             try {
                 // 判断队列是否满
-                while (size >= capacity){
+                while (size >= capacity) {
                     System.out.println("队列已满,释放锁,等待消息者消费数据");
-                    isFull.await();
+                    notFull.await();
                 }
-            }catch (InterruptedException e){
-                isFull.notify();
+            } catch (InterruptedException e) {
+                notFull.notify();
                 e.printStackTrace();
             }
             ++size;
             container.add(data);
             // 唤醒 消费者取数据
-            isEmpty.notify();
+            notEmpty.notify();
         } finally {
             lock.unlock();
         }
@@ -60,29 +62,31 @@ public class BlockingQueue {
 
     /**
      * 消费者 取数据
+     *
      * @return 数据
      */
-    public int take(){
+    public int take() {
+
+        // 获取锁
+        lock.lock();
         try {
-            // 获取锁
-            lock.lock();
             try {
                 // 判断队列是否为空
-                while (size == 0){
+                while (size == 0) {
                     System.out.println("队列已空,释放锁,等待生产者生产数据");
-                    isEmpty.await();
+                    notEmpty.await();
                 }
-            }catch (InterruptedException e){
-                isEmpty.notify();
+            } catch (InterruptedException e) {
+                notEmpty.notify();
                 e.printStackTrace();
             }
 
             --size;
             int res = container.remove(0);
             // 唤醒生产者生产数据
-            isFull.notify();
+            notFull.notify();
             return res;
-        }finally {
+        } finally {
             lock.unlock();
         }
 
