@@ -35,7 +35,7 @@ public class BlockingQueue {
     }
 
     // 添加元素
-    public void add(int data) {
+    public void put(int data) {
 
         // 获取锁
         lock.lock();
@@ -51,7 +51,7 @@ public class BlockingQueue {
                 notFull.notify();
                 e.printStackTrace();
             }
-            ++size;
+            size++;
             container.add(data);
             // 唤醒 消费者取数据
             notEmpty.notify();
@@ -81,7 +81,7 @@ public class BlockingQueue {
                 e.printStackTrace();
             }
 
-            --size;
+            size--;
             int res = container.remove(0);
             // 唤醒生产者生产数据
             notFull.notify();
